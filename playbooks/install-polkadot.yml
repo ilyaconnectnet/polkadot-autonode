@@ -1,0 +1,26 @@
+---
+- name: install-polkadot
+  hosts: all
+  become: true
+  remote_user: ubuntu
+  gather_facts: false
+  tasks:
+    - name: Update all packages to their latest version
+      apt:
+        name: "*"
+        state: latest
+
+    - name: Install Docker on the machine
+      shell: |
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        DRY_RUN=1 sh ./get-docker.sh
+        sudo sh get-docker.sh
+
+    - name: Ensure Docker is running
+      systemd:
+        name: docker
+        state: started
+
+    - name: Install the Polkadot image on the machine
+      shell: |
+        docker run -p 9944:9944 -p 9615:9615 parity/polkadot:v0.9.13 --name "{{ nodeName }}" --rpc-external --ws-external --prometheus-external
